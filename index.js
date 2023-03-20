@@ -11,52 +11,87 @@ const Node = (value = null, left = null, right = null) => {
 const BinarySearchTree = (arrayValues) => {
     let root = null;
 
-    const buildTree = () => {
-        return mergeSort(arrayValues);
+    const filterDuplicates = (arrayToFilter) => {
+        // We are creating a set and deconstructing its contents into a new array.
+        // This is done in O(N) time and is a better alternative to looping through
+        // every element in the list and using Array.includes(). Using includes()
+        // increases the time complexity to O(N^2).
+        return [...new Set(arrayToFilter)];
+    }
+
+    const buildTree = (values) => {
+        
+        // don't call filter values here yet
+        if(values.length <= 0) return null;
+
+        let mid = Math.floor(values.length / 2);
+        let root = Node(values[mid]);
+        console.log(`value of node: ${root.getValue()}`)
+
+        root.left = buildTree(values.slice(0, mid));
+        root.right = buildTree(values.slice(mid + 1));
+
+        return root;
+    }
+
+    const prettyPrint = (node, prefix = '', isLeft = true) => {
+        if (node.right !== null) {
+          prettyPrint(node.right, `${prefix}${isLeft ? '│   ' : '    '}`, false);
+        }
+        console.log(`${prefix}${isLeft ? '└── ' : '┌── '}${node.getValue()}`);
+        if (node.left !== null) {
+          prettyPrint(node.left, `${prefix}${isLeft ? '    ' : '│   '}`, true);
+        }
     }
 
     const sortArrays = (left, right) => {
-        let mergedArray = [];
-        while (left.length && right.length) {
-            // remove duplicates while sorting.
-            // increases complexity while sorting
-            // but will reduce tree size
-            if(mergedArray.includes(left[0])) {
-                left.shift();
-            }
-            if(mergedArray.includes(right[0])) {
-                right.shift();
-            }
-            if (left[0] < right[0]) {
-                mergedArray.push(left.shift());
+        const sortedArray = [];
+
+        while(left.length > 0 && right.length > 0) {
+            if(left[0] < right[0]) {
+                sortedArray.push(left.shift());
             } else {
-                mergedArray.push(right.shift());
+                sortedArray.push(right.shift());
             }
         }
 
-        // Append whatever elements were left in the array
-        return [...mergedArray, ...left, ...right];
+        return [...sortedArray, ...left, ...right];
     }
 
     const mergeSort = (values) => {
-        if (values.length <= 1) {
-            return values;
-        }
-        let midIndex = Math.floor(values.length / 2);
-        let leftArray = values.slice(0, midIndex);
-        let rightArray = values.slice(midIndex);
+        if(values.length <= 1) return values;
 
-        let sortedLeft = mergeSort(leftArray);
-        let sortedRight = mergeSort(rightArray);
+        let mid = Math.floor(values.length / 2);
 
-        return sortArrays(sortedLeft, sortedRight);
+        let leftArray = mergeSort(values.slice(0, mid));
+        let rightArray = mergeSort(values.slice(mid));
+
+        return sortArrays(leftArray, rightArray);
     }
 
+    const print = () => {
+        prettyPrint(root);
+    }
+
+    /**
+     * This function is used to set up the tree when the user
+     * provides an input to the binary search tree.
+     */
+    const init = () => {
+        const filteredInputValues = filterDuplicates(arrayValues);
+        const sortedInputValues = mergeSort(filteredInputValues);
+        console.log(`operating on ${sortedInputValues}`);
+        root = buildTree(sortedInputValues);
+    }
+
+    // Initialize tree
+    init();
+
     return {
-        buildTree,
+        print,
     }
 }
 
-const bst = BinarySearchTree([5,3,1,2,6,9,15,12,2]);
-console.log(bst.buildTree());
+const bst = BinarySearchTree([5,3,1,2,6,9,15,12,2, 14, 15, 15 ,15]);
+bst.print();
 
